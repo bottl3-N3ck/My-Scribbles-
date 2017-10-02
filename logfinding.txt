@@ -1,0 +1,104 @@
+/* the below code works only for values from 0 to 1499  and most importantly you should have the file logfinding.txt in
+*C:\Users\darsh\Documents\Visual Studio 2012\Projects\logfinding\logfinding where the first 'logfinding' stands for the project name and the secod for the file name  
+*/
+
+#include"stdafx.h"
+#include<iostream>
+#include<fstream>
+#include<ctime>
+using namespace std;
+
+
+void main( ){
+
+float originum;
+int characteristic=0,i=0;                          // characteristic stands for power
+cout<<"Enter number whose log is to be found: ";
+cin>>originum;                                    //number which we are entering
+clock_t begin=clock();
+float duporiginum=originum;                      //creates duplicate which will be altered, to find characteristic 
+if(originum==0)
+	{
+		cout<<'\n'<<"Log of 0 is not defined!";
+		exit(0);
+    }
+//finding characteristic
+
+if(originum>1)                                     //for positive characteristic 
+	// characteristic=0 for single digit numbers by default(see declaration)
+{
+	while(duporiginum>1)
+	{
+		duporiginum/=10;
+		characteristic++;
+	}
+ 	characteristic--;            //one characteristic will be extra because the decimal point will be counted
+	++duporiginum;               // to convert to scientific notation to use at line 96
+}
+
+else 
+	if (originum<1)                             // for negative characteristic 
+while(duporiginum<1)
+{
+	characteristic--;
+	duporiginum*=10;
+}
+
+                      
+
+
+int mantissa[4];
+                // a float number when equated to an integer , only the part before decimal gets equated                              
+int test;      // test=originum will lead to error eg.-  0.1111 --> 0       
+float NOW=originum;  //float datatype made to avoid above (mentioned) error
+start:      if(NOW>9999)     //if the numbet is greater than 4 digit, we clip it eg.:4567823->4567, charcteristic has already bee decided so wont make any changes to the value
+	   {    
+		   NOW/=10;
+           goto start; 
+       }
+ else 
+finishing2:  if(NOW<1000)  // if the number is less than 4 digit we expand it to fit mantissa[], charcteristic has already bee decided so wont make any changes to the value
+	   {   
+		   NOW=NOW*10;
+		   goto finishing2;
+	   }
+test=NOW;                //removing unnecessary float to avoid error in line 58
+
+i=3;                     //to give position to the digits in "mantissa"
+
+//"mantissa" stands for the four digit number whose log we're finding
+while(test>=1)           //extracts the mantissa
+{
+	mantissa[i]=test % 10;
+	test/=10;
+    i--;
+}
+
+
+//"mantissa" stands for the four digit number whose log we're finding
+//"mantissa*int*" , the int stands for the value of the position (starts from 0) stored in "mantissa*int*" from "mantissa(array)"
+
+int mantissa01=mantissa[0]*10+mantissa[1];
+int mantissa2=mantissa[2];
+int mantissa3=mantissa[3];
+int MANTISSA;                              //"MANTISSA" stands for the four digit number we are finding the log table
+ifstream fin("logfinding.txt",ios::binary);
+fin.seekg((mantissa01-10)*20*sizeof(int),ios::beg);  //to choose the row number, '20' is the number of elements to skip
+fin.seekg(mantissa2*sizeof(int),ios ::cur);           //column within the row
+                                      
+fin.read((char*)&MANTISSA,sizeof(MANTISSA));       //obtained MANTISSA value 'without' adding mean diffrence
+fin.seekg((9-mantissa2)*sizeof(int),ios::cur);     // setting pointer to beginning position of mean diffrence 
+fin.seekg((mantissa3)*sizeof(int),ios::cur);       //column whose mean diffrence should be added is reached
+fin.read((char*)&test,sizeof(test));               // mean diffrence read into 'test a which will be added to MANTISSA 
+MANTISSA+=test;                                   //this is the log we will be displaying, the final result 
+if(MANTISSA>9999)                          //characeteristic incremented if MANTISSA =10000
+ {    characteristic+=1;
+      MANTISSA=MANTISSA%1000; 
+}
+
+cout<<"\nLog of "<<duporiginum<<"x10^"<<characteristic<<" is";
+    cout<<characteristic<<"."<<MANTISSA;
+clock_t end=clock();
+double elapsed_secs=double(end-begin)/CLOCKS_PER_SEC;
+cout<<'\n'<<elapsed_secs;
+}
